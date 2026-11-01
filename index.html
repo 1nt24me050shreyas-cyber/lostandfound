@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f5f0" />
+    <meta
+      name="description"
+      content="A thoughtful place to reunite people with the things they've lost."
+    />
+    <script>
+      (() => {
+        let preference = "system";
+        try {
+          const stored = localStorage.getItem("common-ground-theme");
+          if (stored === "light" || stored === "dark" || stored === "system") preference = stored;
+        } catch {}
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = preference === "system" ? (prefersDark ? "dark" : "light") : preference;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.style.colorScheme = theme;
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor)
+          themeColor.setAttribute("content", theme === "dark" ? "#121413" : "#f7f5f0");
+      })();
+    </script>
+    <title>Common Ground — Lost &amp; Found</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
