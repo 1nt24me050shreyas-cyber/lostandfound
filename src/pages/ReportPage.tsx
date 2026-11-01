@@ -19,6 +19,8 @@ import { useForm } from "react-hook-form";
 import { Link, Navigate, useBlocker, useParams } from "react-router-dom";
 import { createItem } from "@/features/items/items.api";
 import {
+  formatReportDate,
+  formatReportPhone,
   localDateString,
   reportSchema,
   type ReportValues,
@@ -780,7 +782,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                     <dl>
                       <div>
                         <dt>Item</dt>
-                        <dd>{values.title}</dd>
+                        <dd className="report-review-item-title">{values.title}</dd>
                       </div>
                       <div>
                         <dt>Category</dt>
@@ -830,7 +832,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       <div>
                         <dt>Date</dt>
                         <dd>
-                          {values.date}
+                          {formatReportDate(values.date)}
                           {values.time ? ` · ${values.time}` : ""}
                         </dd>
                       </div>
@@ -855,7 +857,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       {values.contactPhone && (
                         <div>
                           <dt>Phone</dt>
-                          <dd>{values.contactPhone}</dd>
+                          <dd>{formatReportPhone(values.contactPhone)}</dd>
                         </div>
                       )}
                     </dl>

@@ -6,7 +6,7 @@
   background: var(--background);
 }
 .header-inner {
-  width: min(1360px, calc(100% - 64px));
+  width: min(var(--container-max), calc(100% - var(--container-inset)));
   min-height: 76px;
   margin-inline: auto;
   display: flex;
@@ -207,7 +207,7 @@
 }
 
 .footer-inner {
-  width: min(1240px, calc(100% - 64px));
+  width: min(var(--container-max), calc(100% - var(--container-inset)));
   min-height: 190px;
   margin-inline: auto;
   padding-block: 34px;
@@ -748,17 +748,8 @@
 }
 
 .page-container {
-  width: calc(100% - 48px);
+  width: min(var(--container-max), calc(100% - var(--container-inset)));
   margin-inline: auto;
-}
-.page-container--content {
-  max-width: 1120px;
-}
-.page-container--wide {
-  max-width: 1280px;
-}
-.page-container--narrow {
-  max-width: 760px;
 }
 .page-header {
   margin-block: 29px 34px;
@@ -853,7 +844,7 @@
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 21px;
   font-weight: 500;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 .info-step p {
   max-width: 550px;
@@ -881,6 +872,7 @@
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 21px;
   font-weight: 500;
+  letter-spacing: 0;
 }
 .info-sidebar-card p {
   margin: 0 0 13px;
@@ -1061,7 +1053,6 @@
 
 @media (max-width: 1100px) {
   .header-inner {
-    width: calc(100% - 40px);
     gap: 16px;
   }
   .main-nav {
@@ -1079,7 +1070,6 @@
 }
 @media (max-width: 960px) {
   .header-inner {
-    width: calc(100% - 36px);
     min-height: 66px;
   }
   .main-nav,
@@ -1103,9 +1093,6 @@
     color: var(--text);
     cursor: pointer;
   }
-  .footer-inner {
-    width: calc(100% - 44px);
-  }
   .page-header {
     align-items: flex-start;
     flex-direction: column;
@@ -1118,7 +1105,6 @@
 }
 @media (max-width: 680px) {
   .header-inner {
-    width: calc(100% - 32px);
     min-height: 62px;
   }
   .brand-wordmark {
@@ -1128,7 +1114,6 @@
     gap: 7px;
   }
   .footer-inner {
-    width: calc(100% - 36px);
     min-height: auto;
     padding-block: 27px 22px;
     grid-template-columns: 1fr 1fr;
@@ -1145,9 +1130,6 @@
   }
   .footer-note {
     justify-self: start;
-  }
-  .page-container {
-    width: calc(100% - 36px);
   }
   .page-header {
     margin-block: 22px 24px;

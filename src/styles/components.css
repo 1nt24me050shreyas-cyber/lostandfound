@@ -556,7 +556,7 @@
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 20px;
   font-weight: 500;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 .ui-empty-description {
   max-width: 300px;
@@ -775,7 +775,7 @@
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 19px;
   font-weight: 500;
-  letter-spacing: -0.2px;
+  letter-spacing: 0;
 }
 .ds-theme-panel .ds-token-grid {
   display: grid;
@@ -827,7 +827,7 @@
 }
 .ds-type-heading {
   font-size: 21px;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 .ds-type-body {
   color: var(--muted);

@@ -5,6 +5,21 @@
 :root {
   font-family: "Public Sans", sans-serif;
 }
+@media (max-width: 960px) {
+  :root {
+    --container-inset: 36px;
+  }
+}
+@media (max-width: 680px) {
+  :root {
+    --container-inset: 32px;
+  }
+}
+@media (max-width: 380px) {
+  :root {
+    --container-inset: 28px;
+  }
+}
 
 * {
   box-sizing: border-box;
@@ -80,7 +95,7 @@ textarea:focus-visible {
   transform: translateY(0);
 }
 .page-wrap {
-  width: min(1120px, calc(100% - 48px));
+  width: min(var(--container-max), calc(100% - var(--container-inset)));
   margin-inline: auto;
 }
 .app-shell {
@@ -522,7 +537,7 @@ h2 em {
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 19px;
   font-weight: 500;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1415,7 +1430,7 @@ h2 em {
   .page-wrap,
   .header-inner,
   .footer-inner {
-    width: calc(100% - 28px);
+    width: min(var(--container-max), calc(100% - var(--container-inset)));
   }
   .search-form {
     gap: 8px;
@@ -1770,6 +1785,9 @@ h2 em {
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
+.report-review-item-title {
+  text-transform: capitalize;
+}
 .report-review-photos {
   display: flex;
   flex-wrap: wrap;
@@ -1952,6 +1970,7 @@ h2 em {
 }
 
 .browse-results-layout {
+  margin-top: 24px;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 29px;
@@ -2033,16 +2052,21 @@ h2 em {
 }
 .browse-date-range {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 15px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 5px;
-  align-items: center;
+  align-items: stretch;
   color: var(--muted);
   font-size: 10px;
-  text-align: center;
+  text-align: left;
 }
 .browse-date-range .browse-filter-input {
-  padding-inline: 5px;
+  width: 100%;
+  min-width: 0;
+  padding-inline: 8px;
   font-size: 10px;
+}
+.browse-date-range > span {
+  margin-block: 1px;
 }
 .browse-results {
   min-width: 0;

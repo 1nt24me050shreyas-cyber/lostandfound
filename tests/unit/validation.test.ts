@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { claimSchema } from "@/features/claims/claim-schema";
-import { localDateString, reportSchema } from "@/features/items/report-schema";
+import {
+  formatReportDate,
+  formatReportPhone,
+  localDateString,
+  reportSchema,
+} from "@/features/items/report-schema";
 
 describe("report validation", () => {
   it("rejects incomplete or future-dated listings", () => {
@@ -38,6 +43,12 @@ describe("report validation", () => {
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.title).toBe("Blue umbrella");
   });
+
+  it("formats review dates and phone numbers for display", () => {
+    expect(formatReportDate("2026-11-01")).toBe("1 Nov 2026");
+    expect(formatReportPhone("4155550132")).toBe("(415) 555-0132");
+    expect(formatReportPhone("+1 (415) 555-0132")).toBe("+1 (415) 555-0132");
+  });
 });
 
 describe("claim validation", () => {
@@ -58,7 +69,8 @@ describe("claim validation", () => {
   });
 
   it("accepts complete proof with optional photo omitted", () => {
-    const { photoUrl: _photoUrl, ...claim } = validClaim;
+    const { photoUrl, ...claim } = validClaim;
+    expect(photoUrl).toBe("");
     expect(claimSchema.safeParse(claim).success).toBe(true);
   });
 });

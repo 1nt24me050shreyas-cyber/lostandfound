@@ -56,6 +56,8 @@
 }
 
 :root {
+  --container-max: 1240px;
+  --container-inset: 48px;
   --bg: var(--background);
   --accent-bg: var(--accent-soft);
   --lost-bg: var(--lost-surface);

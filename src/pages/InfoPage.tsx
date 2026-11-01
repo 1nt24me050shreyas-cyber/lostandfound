@@ -138,12 +138,18 @@ const pages = {
     intro:
       "You can browse without creating an account. When you send a claim, include a detail the poster can use to confirm you’re the owner. Never include a password, verification code, or financial information.",
     steps: [
-      ["Can I browse without signing in?", "Yes. Browse and search listings without an account."],
       [
+        "01",
+        "Can I browse without signing in?",
+        "Yes. Browse and search listings without an account.",
+      ],
+      [
+        "02",
         "What should I put in a claim?",
         "Share one private identifying detail and a way the poster can reply. Leave sensitive information out.",
       ],
       [
+        "03",
         "Where should we meet?",
         "Choose a public, familiar place during daylight. Avoid sharing your home address.",
       ],
@@ -184,9 +190,9 @@ export function InfoPage() {
       >
         <p className="info-intro">{page.intro}</p>
         <div className="info-steps">
-          {page.steps.map(([title, detail], index) => (
+          {page.steps.map(([number, title, detail]) => (
             <article className="info-step" key={title}>
-              <span className="info-step-number">{String(index + 1).padStart(2, "0")}</span>
+              <span className="info-step-number">{number}</span>
               <div>
                 <h2>{title}</h2>
                 <p>{detail}</p>

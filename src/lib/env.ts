@@ -14,7 +14,5 @@ if (!parsedEnv.success) {
 
 export const env = {
   apiBaseUrl: parsedEnv.data.VITE_API_BASE_URL.replace(/\/+$/, ""),
-  enableMocks:
-    parsedEnv.data.VITE_ENABLE_MOCKS === "true" ||
-    (parsedEnv.data.VITE_ENABLE_MOCKS === undefined && import.meta.env.DEV),
+  enableMocks: parsedEnv.data.VITE_ENABLE_MOCKS !== "false",
 };

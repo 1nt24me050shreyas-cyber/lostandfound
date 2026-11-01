@@ -23,7 +23,7 @@ npm run dev
 
 On macOS or Linux, use `cp .env.example .env`. The app runs at `http://localhost:5173`.
 
-The browser MSW worker is enabled by default in development. It serves a seeded demo API; changes are held in mock memory and reset when its worker context restarts. Demo accounts:
+The browser MSW worker is enabled by default in development and production. It serves a seeded demo API; changes are held in mock memory and reset when its worker context restarts. Demo accounts:
 
 | Role          | Email               | Password      |
 | ------------- | ------------------- | ------------- |
@@ -84,7 +84,7 @@ Design tokens are defined in [`src/styles/tokens.css`](./src/styles/tokens.css).
 The API boundary is `src/lib/api-client.ts`; feature-specific typed functions live under `src/features/*/*.api.ts`. The mock handlers in `src/mocks/handlers.ts` implement the contract documented in [`API-CONTRACT.md`](./API-CONTRACT.md).
 
 1. Configure the deployed API base URL in `VITE_API_BASE_URL` (defaults to `/api`).
-2. Set `VITE_ENABLE_MOCKS=false` in the deployment environment. `src/main.tsx` will then skip the browser MSW worker.
+2. Set `VITE_ENABLE_MOCKS=false` in the deployment environment. `src/main.tsx` will then skip the browser MSW worker; without this explicit setting, the seeded mock API is enabled for production previews and deployments.
 3. Implement the endpoint paths, JSON shapes, status codes, and role/ownership rules in `API-CONTRACT.md`. Keep responses compatible with the TypeScript domain types in `src/types/` and feature API modules.
 4. Implement the contract's refresh-token rotation endpoint. The client sends the access token as a Bearer token and refreshes once after an eligible `401`; the current mock stores both tokens in memory, so production token persistence and secure refresh-token handling must be designed for the deployment.
 5. Validate authentication, authorization, privacy, and file-upload behavior on the server. In particular, do not expose private contact fields or claimant proof in public listing responses.
