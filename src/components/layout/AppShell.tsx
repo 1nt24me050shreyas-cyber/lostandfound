@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
-import { ArrowUpRight, CircleUserRound, Monitor, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, CircleUserRound } from "lucide-react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
-import { useTheme } from "@/hooks/useTheme";
-import type { ThemePreference } from "@/app/theme-types";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
+import { NotificationCenter } from "@/components/layout/NotificationCenter";
 import { SiteSearch } from "@/components/layout/SiteSearch";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
 
 const primaryLinks = [
   { to: "/items", label: "Browse" },
@@ -14,10 +15,8 @@ const primaryLinks = [
 ];
 
 export function AppShell() {
-  const { preference, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
   const accountRef = useRef<HTMLDetailsElement>(null);
-  const nextTheme: ThemePreference =
-    preference === "system" ? "dark" : preference === "dark" ? "light" : "system";
 
   useEffect(() => {
     function closeAccountMenu(event: PointerEvent) {
@@ -51,21 +50,8 @@ export function AppShell() {
           </nav>
           <div className="header-tools">
             <SiteSearch />
-            <button
-              className="theme-toggle"
-              type="button"
-              onClick={() => setTheme(nextTheme)}
-              aria-label={`Switch to ${nextTheme} theme`}
-              title={`Theme: ${preference}. Activate to switch to ${nextTheme}.`}
-            >
-              {preference === "dark" ? (
-                <Sun size={17} />
-              ) : preference === "light" ? (
-                <Moon size={17} />
-              ) : (
-                <Monitor size={17} />
-              )}
-            </button>
+            <NotificationCenter />
+            <ThemeToggle />
             <details
               className="account-menu"
               ref={accountRef}
@@ -76,38 +62,52 @@ export function AppShell() {
                 }
               }}
             >
-              <summary aria-label="Open guest account menu">
+              <summary aria-label="Open account menu">
                 <CircleUserRound size={19} aria-hidden="true" />
-                <span>Account</span>
+                <span>{user ? "My account" : "Account"}</span>
               </summary>
               <div className="account-popover">
                 <p className="account-overline">YOUR ACCOUNT</p>
-                <strong>Browsing as a guest</strong>
-                <p>You can browse and send a claim without creating an account.</p>
-                <Link to="/faq" onClick={() => accountRef.current?.removeAttribute("open")}>
-                  How claims work <ArrowUpRight size={14} />
-                </Link>
-                <Link to="/contact" onClick={() => accountRef.current?.removeAttribute("open")}>
-                  Contact &amp; support <ArrowUpRight size={14} />
-                </Link>
+                {user ? (
+                  <>
+                    <strong>Hello, {user.name.split(" ")[0]}</strong>
+                    <p>Manage your reports, claims, and settings.</p>
+                    <Link to="/account" onClick={() => accountRef.current?.removeAttribute("open")}>
+                      Go to your account <ArrowUpRight size={14} />
+                    </Link>
+                    {user.role === "admin" && (
+                      <Link to="/admin" onClick={() => accountRef.current?.removeAttribute("open")}>
+                        Admin console <ArrowUpRight size={14} />
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        signOut();
+                        accountRef.current?.removeAttribute("open");
+                      }}
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <strong>Browsing as a guest</strong>
+                    <p>You can browse and send a claim without creating an account.</p>
+                    <Link to="/sign-in" onClick={() => accountRef.current?.removeAttribute("open")}>
+                      Sign in <ArrowUpRight size={14} />
+                    </Link>
+                    <Link to="/sign-up" onClick={() => accountRef.current?.removeAttribute("open")}>
+                      Create an account <ArrowUpRight size={14} />
+                    </Link>
+                  </>
+                )}
               </div>
             </details>
           </div>
           <div className="mobile-header-tools">
-            <button
-              className="theme-toggle"
-              type="button"
-              onClick={() => setTheme(nextTheme)}
-              aria-label={`Switch to ${nextTheme} theme`}
-            >
-              {preference === "dark" ? (
-                <Sun size={17} />
-              ) : preference === "light" ? (
-                <Moon size={17} />
-              ) : (
-                <Monitor size={17} />
-              )}
-            </button>
+            <NotificationCenter />
+            <ThemeToggle />
             <MobileNavigation />
           </div>
         </div>

@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Clock3, MapPin, Search, X } from "lucide-react";
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { getCategories } from "@/features/admin/admin.api";
 
 const storageKey = "common-ground-recent-searches";
 const recentSearchSchema = z.array(
@@ -68,6 +70,8 @@ export function ListingSearchBar() {
   const inputId = useId();
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: getCategories });
+  const categoryOptions = ["All categories", ...(categoriesQuery.data ?? categories.slice(1))];
 
   function updateValue(field: keyof ListingSearch, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -195,7 +199,7 @@ export function ListingSearchBar() {
               value={values.category}
               onChange={(event) => updateValue("category", event.target.value)}
             >
-              {categories.map((category) => (
+              {categoryOptions.map((category) => (
                 <option key={category}>{category}</option>
               ))}
             </select>

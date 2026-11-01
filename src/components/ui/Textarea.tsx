@@ -18,7 +18,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && (
-          <span className="ui-field-error" id={errorId}>
+          <span className="ui-field-error" id={errorId} role="alert">
             {error}
           </span>
         )}

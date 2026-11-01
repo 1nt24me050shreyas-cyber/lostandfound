@@ -3,9 +3,11 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { SiteSearch } from "@/components/layout/SiteSearch";
+import { useAuth } from "@/hooks/useAuth";
 
 export function MobileNavigation() {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -47,9 +49,43 @@ export function MobileNavigation() {
             <NavLink to="/how-it-works" onClick={() => setOpen(false)}>
               How it works
             </NavLink>
+            {user ? (
+              <>
+                <NavLink to="/account" onClick={() => setOpen(false)}>
+                  My account
+                </NavLink>
+                {user.role === "admin" && (
+                  <NavLink to="/admin" onClick={() => setOpen(false)}>
+                    Admin console
+                  </NavLink>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    signOut();
+                    setOpen(false);
+                  }}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/sign-in" onClick={() => setOpen(false)}>
+                  Sign in
+                </NavLink>
+                <NavLink to="/sign-up" onClick={() => setOpen(false)}>
+                  Create an account
+                </NavLink>
+              </>
+            )}
           </nav>
           <div className="mobile-drawer-footer">
-            <p>Browsing as a guest. No account is needed to look around or send a claim.</p>
+            <p>
+              {user
+                ? `Signed in as ${user.name}.`
+                : "No account is needed to look around or send a claim."}
+            </p>
             <Link className="text-link" to="/faq" onClick={() => setOpen(false)}>
               Account &amp; claim questions
             </Link>

@@ -4,7 +4,7 @@
   --background: #f7f5f0;
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --border: #e3dfd6;
+  --border: #8b877d;
   --text: #1c1b18;
   --muted: #6b675e;
   --accent: #0f5c54;
@@ -35,7 +35,7 @@
   --background: #121413;
   --surface: #1b1e1c;
   --surface-raised: #222624;
-  --border: #2b302d;
+  --border: #707670;
   --text: #eceae4;
   --muted: #9a9a92;
   --accent: #4fb3a5;
@@ -65,5 +65,11 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
   --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 28%, transparent);
 }

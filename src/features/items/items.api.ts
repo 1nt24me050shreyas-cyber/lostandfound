@@ -48,3 +48,19 @@ export function getItem(id: string) {
 export function createItem(payload: NewItem) {
   return apiRequest<Item>("/items", { method: "POST", body: JSON.stringify(payload) });
 }
+
+export function updateItem(
+  itemId: string,
+  updates: Partial<Pick<Item, "title" | "description" | "location" | "status">>,
+) {
+  return apiRequest<Item>(`/items/${encodeURIComponent(itemId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+}
+
+export function deleteItem(itemId: string) {
+  return apiRequest<{ message: string }>(`/items/${encodeURIComponent(itemId)}`, {
+    method: "DELETE",
+  });
+}

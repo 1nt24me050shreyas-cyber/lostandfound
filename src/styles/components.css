@@ -1,10 +1,10 @@
 .ui-button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: 12px;
@@ -69,12 +69,12 @@
   color: #10211e;
 }
 .ui-button--sm {
-  min-height: 32px;
+  min-height: 44px;
   padding-inline: 10px;
   font-size: 10px;
 }
 .ui-button--md {
-  min-height: 40px;
+  min-height: 44px;
 }
 .ui-button--lg {
   min-height: 48px;
@@ -92,7 +92,7 @@
 
 .ui-control {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: 9px 11px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -171,12 +171,12 @@
   padding: 4px;
 }
 .ui-select-item {
-  min-height: 34px;
+  min-height: 44px;
   padding: 7px 30px 7px 9px;
   position: relative;
   display: flex;
   align-items: center;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-size: 11px;
   outline: none;
@@ -208,34 +208,60 @@
 }
 
 .ui-check-row {
-  min-height: 28px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 9px;
 }
 .ui-checkbox,
 .ui-radio {
-  width: 17px;
-  height: 17px;
-  flex: 0 0 17px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  position: relative;
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 0;
+  background: transparent;
   color: #fff;
   cursor: pointer;
 }
+.ui-checkbox::before,
+.ui-radio::before {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  content: "";
+}
 .ui-checkbox {
-  border-radius: 4px;
+  border-radius: 0;
 }
 .ui-radio {
+  border-radius: 0;
+}
+.ui-checkbox::before {
+  border-radius: var(--radius-sm);
+}
+.ui-radio::before {
   border-radius: 50%;
 }
 .ui-checkbox[data-state="checked"],
 .ui-radio[data-state="checked"] {
+  border-color: transparent;
+  background: transparent;
+}
+.ui-checkbox[data-state="checked"]::before,
+.ui-radio[data-state="checked"]::before {
   border-color: var(--accent);
   background: var(--accent);
+}
+.ui-checkbox > span,
+.ui-radio > span {
+  position: relative;
+  z-index: 1;
 }
 .ui-radio-indicator,
 .ui-radio [data-radix-radio-group-indicator] {
@@ -294,8 +320,8 @@
   padding: 4px 8px;
   display: inline-flex;
   align-items: center;
-  border-radius: 4px;
-  font-size: 9px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.45px;
   line-height: 1.2;
@@ -319,7 +345,7 @@
 }
 
 .ui-card {
-  padding: 16px;
+  padding: var(--space-4);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -335,7 +361,7 @@
   border-bottom: 1px solid var(--border);
 }
 .ui-tab-trigger {
-  min-height: 37px;
+  min-height: 44px;
   margin-bottom: -1px;
   padding: 0 2px;
   border: 0;
@@ -352,7 +378,7 @@
   font-weight: 600;
 }
 .ui-tab-trigger:focus-visible {
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   outline: 3px solid var(--focus-ring);
   outline-offset: 1px;
 }
@@ -413,9 +439,9 @@
   margin-top: 17px;
 }
 .ui-icon-button {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   display: inline-grid;
   place-items: center;
   border: 1px solid transparent;
@@ -501,7 +527,7 @@
 .ui-skeleton {
   height: 12px;
   display: block;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--surface-raised);
   animation: ui-pulse 1.4s ease-in-out infinite alternate;
 }
@@ -546,13 +572,13 @@
   gap: 4px;
 }
 .ui-page-button {
-  min-width: 33px;
-  height: 33px;
+  min-width: 44px;
+  min-height: 44px;
   padding-inline: 7px;
   display: inline-grid;
   place-items: center;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -595,7 +621,7 @@
 .ui-avatar--sm {
   width: 28px;
   height: 28px;
-  font-size: 9px;
+  font-size: 10px;
 }
 .ui-avatar--lg {
   width: 46px;
@@ -615,7 +641,7 @@
   padding: 7px 9px;
   z-index: 70;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--text);
   color: var(--surface);
   font-size: 10px;
@@ -629,6 +655,7 @@
 .ui-breadcrumbs ol {
   margin: 0;
   padding: 0;
+  min-height: 44px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -643,6 +670,11 @@
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+.ui-breadcrumbs a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 .ui-breadcrumbs [aria-current="page"] {
   color: var(--text);
@@ -693,7 +725,7 @@
   min-height: 36px;
   padding-inline: 9px;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   font: inherit;
@@ -730,7 +762,7 @@
   border: 1px solid var(--border);
   border-radius: 20px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.7px;
 }
@@ -761,7 +793,7 @@
   height: 28px;
   flex: 0 0 28px;
   border: 1px solid color-mix(in srgb, var(--text) 13%, transparent);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .ds-token > span:last-child {
   min-width: 0;
@@ -769,14 +801,14 @@
   gap: 1px;
 }
 .ds-token strong {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
 }
 .ds-token code {
   overflow: hidden;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 8px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -804,7 +836,7 @@
 }
 .ds-type-caption {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.9px;
 }
@@ -820,7 +852,7 @@
 .ds-hint {
   margin: 9px 0 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 .ds-focus-demo {
   outline: 3px solid var(--focus-ring);
@@ -863,19 +895,19 @@
   display: grid;
   gap: 4px;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: var(--radius-md);
 }
 .ds-fieldset legend {
   padding-inline: 4px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 .ds-avatar-row {
   margin-top: 15px !important;
 }
 .ds-avatar-name {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 .ds-card {
   box-shadow: none;
@@ -888,7 +920,7 @@
   gap: 10px;
 }
 .ds-card-heading .eyebrow {
-  font-size: 8px;
+  font-size: 10px;
 }
 .ds-card h4 {
   margin: 9px 0 4px;
@@ -907,7 +939,7 @@
   padding-top: 9px;
   border-top: 1px solid var(--border);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 .ds-tab-copy {
   margin: 0;
@@ -933,7 +965,7 @@
 .ds-sub-label {
   margin: 0 0 7px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
 }
 .ds-skeleton-card {
@@ -943,7 +975,7 @@
   align-items: flex-start;
   gap: 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--surface);
 }
 .ds-skeleton-card > span:last-child {
@@ -976,7 +1008,7 @@
 }
 .ds-feedback-grid .ui-empty-description {
   margin-bottom: 7px;
-  font-size: 9px;
+  font-size: 10px;
 }
 .ds-last-section {
   border-bottom: 0;
@@ -990,7 +1022,7 @@
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 .ds-screen-reader-note svg {
   flex: 0 0 auto;

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,8 +17,14 @@ import {
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useBlocker, useParams } from "react-router-dom";
-import { z } from "zod";
 import { createItem } from "@/features/items/items.api";
+import {
+  localDateString,
+  reportSchema,
+  type ReportValues,
+  type ValidatedReportValues,
+} from "@/features/items/report-schema";
+import { getCategories } from "@/features/admin/admin.api";
 import type { Category, NewItem } from "@/types";
 
 const categories = [
@@ -66,43 +72,6 @@ const categoryImages: Record<Category, string> = {
   "Sports & outdoors":
     "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=960&q=85",
 };
-const categorySchema = z
-  .string()
-  .min(1, "Choose the category that fits best.")
-  .refine((value) => (categories as readonly string[]).includes(value), "Choose a valid category.");
-const reportSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(4, "Add a few words so people can recognize it.")
-    .max(80, "Keep the title under 80 characters."),
-  category: categorySchema,
-  description: z
-    .string()
-    .trim()
-    .min(15, "A little more detail will help the right person recognize it.")
-    .max(600, "Keep the description under 600 characters."),
-  location: z
-    .string()
-    .trim()
-    .min(3, "Add a nearby place or landmark.")
-    .max(100, "Keep the location under 100 characters."),
-  date: z
-    .string()
-    .min(1, "Choose the date.")
-    .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00`)), "Choose a valid date.")
-    .refine((value) => value <= localDateString(), "The date cannot be in the future."),
-  time: z.string(),
-  reporter: z
-    .string()
-    .trim()
-    .min(2, "Add your first name.")
-    .max(40, "Keep your name under 40 characters."),
-  contactEmail: z.string().trim().email("Enter a valid email address."),
-  contactPhone: z.string().trim().max(24, "Keep the phone number under 24 characters."),
-});
-type ReportValues = z.input<typeof reportSchema>;
-type ValidatedReportValues = z.output<typeof reportSchema>;
 type DraftPhoto = { name: string; dataUrl: string; size: number };
 type ReportDraft = { values: Partial<ReportValues>; photos: DraftPhoto[]; step: number };
 
@@ -114,13 +83,8 @@ const stepFields: Array<Array<keyof ReportValues>> = [
   [],
 ];
 
-function localDateString() {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
 function isCategory(value: string): value is Category {
-  return (categories as readonly string[]).includes(value);
+  return Boolean(value.trim());
 }
 
 function draftStorageKey(kind: string) {
@@ -197,6 +161,8 @@ export function ReportPage() {
 
 function ReportFlow({ kind }: { kind: "lost" | "found" }) {
   const queryClient = useQueryClient();
+  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: getCategories });
+  const categoryOptions = categoriesQuery.data ?? [...categories];
   const fileInputRef = useRef<HTMLInputElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const processingFilesRef = useRef(false);
@@ -227,7 +193,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
         date: values.date,
         time: values.time || undefined,
         description: values.description,
-        image: imageList[0] ?? categoryImages[values.category],
+        image: imageList[0] ?? categoryImages[values.category] ?? categoryImages.Other,
         images: imageList.length ? imageList : undefined,
         reporter: values.reporter,
         contactEmail: values.contactEmail,
@@ -514,7 +480,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       {...register("title")}
                     />
                     {errors.title && (
-                      <p className="field-error" id="title-error">
+                      <p className="field-error" id="title-error" role="alert">
                         {errors.title.message}
                       </p>
                     )}
@@ -530,12 +496,12 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       {...register("category")}
                     >
                       <option value="">Choose one</option>
-                      {categories.map((category) => (
+                      {categoryOptions.map((category) => (
                         <option key={category}>{category}</option>
                       ))}
                     </select>
                     {errors.category && (
-                      <p className="field-error" id="category-error">
+                      <p className="field-error" id="category-error" role="alert">
                         {errors.category.message}
                       </p>
                     )}
@@ -559,7 +525,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       Leave serial numbers and other one-of-a-kind clues out of the public listing.
                     </span>
                     {errors.description && (
-                      <p className="field-error" id="description-error">
+                      <p className="field-error" id="description-error" role="alert">
                         {errors.description.message}
                       </p>
                     )}
@@ -632,7 +598,12 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                     <ul className="report-photo-list" aria-label="Selected photos">
                       {photos.map((photo, index) => (
                         <li key={`${photo.name}-${index}`}>
-                          <img src={photo.dataUrl} alt={`Preview: ${photo.name}`} />
+                          <img
+                            src={photo.dataUrl}
+                            alt={`Preview: ${photo.name}`}
+                            width={640}
+                            height={480}
+                          />
                           <span title={photo.name}>{photo.name}</span>
                           <button
                             type="button"
@@ -679,7 +650,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       A general location is safer than an exact address.
                     </span>
                     {errors.location && (
-                      <p className="field-error" id="location-error">
+                      <p className="field-error" id="location-error" role="alert">
                         {errors.location.message}
                       </p>
                     )}
@@ -706,7 +677,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                         {...register("date")}
                       />
                       {errors.date && (
-                        <p className="field-error" id="date-error">
+                        <p className="field-error" id="date-error" role="alert">
                           {errors.date.message}
                         </p>
                       )}
@@ -741,7 +712,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       {...register("reporter")}
                     />
                     {errors.reporter && (
-                      <p className="field-error" id="reporter-error">
+                      <p className="field-error" id="reporter-error" role="alert">
                         {errors.reporter.message}
                       </p>
                     )}
@@ -760,7 +731,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       {...register("contactEmail")}
                     />
                     {errors.contactEmail && (
-                      <p className="field-error" id="contactEmail-error">
+                      <p className="field-error" id="contactEmail-error" role="alert">
                         {errors.contactEmail.message}
                       </p>
                     )}
@@ -780,7 +751,7 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                       {...register("contactPhone")}
                     />
                     {errors.contactPhone && (
-                      <p className="field-error" id="contactPhone-error">
+                      <p className="field-error" id="contactPhone-error" role="alert">
                         {errors.contactPhone.message}
                       </p>
                     )}
@@ -834,6 +805,8 @@ function ReportFlow({ kind }: { kind: "lost" | "found" }) {
                           <img
                             src={photo.dataUrl}
                             alt={`Photo ${index + 1}`}
+                            width={640}
+                            height={480}
                             key={`${photo.name}-${index}`}
                           />
                         ))}

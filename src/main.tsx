@@ -6,6 +6,7 @@ import "@/styles/tokens.css";
 import "@/styles/index.css";
 import "@/styles/components.css";
 import "@/styles/layout.css";
+import "@/styles/claim-flow.css";
 
 async function prepareApp() {
   if (env.enableMocks) {

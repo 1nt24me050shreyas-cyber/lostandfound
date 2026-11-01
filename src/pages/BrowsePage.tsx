@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { ItemCard } from "@/components/ui/ItemCard";
 import { Pagination } from "@/components/ui/Pagination";
+import { getCategories } from "@/features/admin/admin.api";
 import { getItems } from "@/features/items/items.api";
 
 const categories = [
@@ -23,6 +24,7 @@ const pageSize = 9;
 
 function FilterFields({
   idPrefix,
+  categories,
   keyword,
   location,
   status,
@@ -34,6 +36,7 @@ function FilterFields({
   onFilterChange,
 }: {
   idPrefix: string;
+  categories: string[];
   keyword: string;
   location: string;
   status: string;
@@ -151,6 +154,8 @@ export function BrowsePage() {
   const [keyword, setKeyword] = useState(query);
   const [locationInput, setLocationInput] = useState(locationFilter);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: getCategories });
+  const categoryOptions = ["All items", ...(categoriesQuery.data ?? categories.slice(1))];
 
   useEffect(() => setKeyword(query), [query]);
   useEffect(() => setLocationInput(locationFilter), [locationFilter]);
@@ -256,6 +261,7 @@ export function BrowsePage() {
   const filterFields = (prefix: string) => (
     <FilterFields
       idPrefix={prefix}
+      categories={categoryOptions}
       keyword={keyword}
       location={locationInput}
       status={status}

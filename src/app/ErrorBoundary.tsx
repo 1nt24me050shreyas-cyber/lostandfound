@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <main className="page-wrap detail-state" role="alert">
+        <main className="page-wrap detail-state" aria-live="assertive">
           <p className="eyebrow">Something went wrong</p>
           <h1>We hit a small snag.</h1>
           <p>The application couldn't render this page.</p>

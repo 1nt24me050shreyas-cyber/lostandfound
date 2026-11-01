@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { RouteErrorPage } from "@/app/RouteErrorPage";
+import { RequireAuth } from "@/app/RequireAuth";
+import { RequireAdmin } from "@/app/RequireAdmin";
 
 export const router = createBrowserRouter([
   {
@@ -8,6 +10,79 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     errorElement: <RouteErrorPage />,
     children: [
+      {
+        path: "sign-in",
+        lazy: async () => {
+          const { SignInPage } = await import("@/pages/AuthPages");
+          return { Component: SignInPage };
+        },
+      },
+      {
+        path: "sign-up",
+        lazy: async () => {
+          const { SignUpPage } = await import("@/pages/AuthPages");
+          return { Component: SignUpPage };
+        },
+      },
+      {
+        path: "forgot-password",
+        lazy: async () => {
+          const { ForgotPasswordPage } = await import("@/pages/AuthPages");
+          return { Component: ForgotPasswordPage };
+        },
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            element: <RequireAdmin />,
+            children: [
+              {
+                path: "admin",
+                lazy: async () => {
+                  const { AdminPage } = await import("@/pages/AdminPage");
+                  return { Component: AdminPage };
+                },
+              },
+            ],
+          },
+          {
+            path: "account",
+            lazy: async () => {
+              const { AccountPage } = await import("@/pages/AccountPage");
+              return { Component: AccountPage };
+            },
+          },
+          {
+            path: "claims/:claimId",
+            lazy: async () => {
+              const { ClaimStatusPage } = await import("@/pages/ClaimFlowPages");
+              return { Component: ClaimStatusPage };
+            },
+          },
+          {
+            path: "claims/:claimId/handover",
+            lazy: async () => {
+              const { HandoverPage } = await import("@/pages/ClaimFlowPages");
+              return { Component: HandoverPage };
+            },
+          },
+          {
+            path: "messages",
+            lazy: async () => {
+              const { MessagesPage } = await import("@/pages/ClaimFlowPages");
+              return { Component: MessagesPage };
+            },
+          },
+          {
+            path: "messages/:threadId",
+            lazy: async () => {
+              const { MessagesPage } = await import("@/pages/ClaimFlowPages");
+              return { Component: MessagesPage };
+            },
+          },
+        ],
+      },
       {
         index: true,
         lazy: async () => {

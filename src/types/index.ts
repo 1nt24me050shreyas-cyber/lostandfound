@@ -1,15 +1,6 @@
 export type ItemStatus = "lost" | "found" | "claimed" | "returned";
 
-export type Category =
-  | "Bags"
-  | "Clothing"
-  | "Documents"
-  | "Electronics"
-  | "Jewelry"
-  | "Keys"
-  | "Personal items"
-  | "Sports & outdoors"
-  | "Other";
+export type Category = string;
 
 export type Item = {
   id: string;
@@ -37,8 +28,31 @@ export type Claim = {
   name: string;
   email: string;
   details: string;
-  status?: "pending" | "approved" | "declined";
+  uniqueMarks?: string;
+  lostDate?: string;
+  lostLocation?: string;
+  photoUrl?: string;
+  consent?: boolean;
+  ownerId?: string;
+  status?: ClaimStatus;
   createdAt?: string;
+  userId?: string;
+  statusHistory?: ClaimStatusEntry[];
+};
+
+export type ClaimStatus = "submitted" | "under_review" | "approved" | "rejected" | "handed_over";
+
+export type ClaimStatusEntry = {
+  status: ClaimStatus;
+  timestamp: string;
+  note?: string;
+};
+
+export type HandoverDetails = {
+  pickupLocation: string;
+  pickupTime: string;
+  idRequired: boolean;
+  updatedAt?: string;
 };
 
 export type User = {
@@ -55,6 +69,27 @@ export type Message = {
   senderId: string;
   recipientId: string;
   body: string;
+  createdAt: string;
+  readAt?: string;
+  threadId?: string;
+};
+
+export type MessageThread = {
+  id: string;
+  claimId: string;
+  itemId: string;
+  itemTitle: string;
+  otherParticipantName: string;
+  lastMessage?: Message;
+  unreadCount: number;
+};
+
+export type Notification = {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  href: string;
   createdAt: string;
   readAt?: string;
 };

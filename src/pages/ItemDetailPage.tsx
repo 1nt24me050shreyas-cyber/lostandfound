@@ -15,28 +15,21 @@ import {
   MapPin,
   Share2,
   ShieldCheck,
+  Trash2,
   X,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ItemCard } from "@/components/ui/ItemCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { claimSchema, type ClaimFormValues } from "@/features/claims/claim-schema";
 import { submitClaim } from "@/features/claims/claims.api";
 import { getItem, getItems, reportItem } from "@/features/items/items.api";
-import type { Claim } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
 
-const claimSchema = z.object({
-  name: z.string().trim().min(2, "Please enter your name."),
-  email: z.string().trim().email("Enter a valid email address."),
-  details: z
-    .string()
-    .trim()
-    .min(20, "Add a detail that helps confirm this item is yours.")
-    .max(500, "Keep your note under 500 characters."),
-});
 const reportSchema = z.object({
   reason: z.string().min(1, "Choose a reason."),
   details: z.string().trim().min(10, "Please add a little more detail.").max(400),
@@ -49,7 +42,10 @@ export function ItemDetailPage() {
 
 function ItemDetailContent({ id }: { id: string }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [claimOpen, setClaimOpen] = useState(false);
+  const [proofPhotoError, setProofPhotoError] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
@@ -68,7 +64,8 @@ function ItemDetailContent({ id }: { id: string }) {
     enabled: Boolean(item),
   });
   const mutation = useMutation({
-    mutationFn: (values: Claim) => submitClaim(id, values),
+    mutationFn: (values: ClaimFormValues) =>
+      submitClaim(id, { ...values, details: values.uniqueMarks }),
     onSuccess: () => setClaimOpen(false),
   });
   const reportMutation = useMutation({
@@ -78,18 +75,60 @@ function ItemDetailContent({ id }: { id: string }) {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
-  } = useForm<Claim>({
+  } = useForm<ClaimFormValues>({
     resolver: zodResolver(claimSchema),
+    defaultValues: {
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      uniqueMarks: "",
+      lostDate: "",
+      lostLocation: "",
+      photoUrl: "",
+      consent: false,
+    },
   });
   const reportForm = useForm<z.infer<typeof reportSchema>>({
     resolver: zodResolver(reportSchema),
   });
 
-  async function sendClaim(values: Claim) {
-    await mutation.mutateAsync(values);
-    reset();
+  async function sendClaim(values: ClaimFormValues) {
+    const result = await mutation.mutateAsync(values);
+    const isSignedInClaimant = user?.email.toLowerCase() === values.email.trim().toLowerCase();
+    if (isSignedInClaimant) navigate(`/claims/${result.claimId}`);
+    else reset();
     await queryClient.invalidateQueries({ queryKey: ["item", id] });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["account", "claims"] }),
+      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    ]);
+  }
+
+  function attachProofPhoto(file: File | undefined) {
+    setProofPhotoError("");
+    if (!file) {
+      setValue("photoUrl", "");
+      return;
+    }
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 3 * 1024 * 1024
+    ) {
+      setProofPhotoError("Choose a JPG, PNG, or WebP image under 3 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setValue("photoUrl", reader.result, { shouldDirty: true });
+        setProofPhotoError("");
+      }
+    };
+    reader.onerror = () =>
+      setProofPhotoError("The photo could not be read. Please choose another.");
+    reader.readAsDataURL(file);
   }
 
   async function sendReport(values: z.infer<typeof reportSchema>) {
@@ -208,6 +247,8 @@ function ItemDetailContent({ id }: { id: string }) {
                 <img
                   src={gallery[activeImage]}
                   alt={`Photo of ${item.title}`}
+                  width={1200}
+                  height={900}
                   onError={() => setImageFailed(true)}
                 />
               )}
@@ -249,7 +290,7 @@ function ItemDetailContent({ id }: { id: string }) {
                   {imageFailed ? (
                     <ImageOff size={17} aria-hidden="true" />
                   ) : (
-                    <img src={image} alt="" />
+                    <img src={image} alt="" width={180} height={135} loading="lazy" />
                   )}
                 </button>
               ))}
@@ -333,7 +374,14 @@ function ItemDetailContent({ id }: { id: string }) {
                       noValidate
                     >
                       <label htmlFor="report-reason">Reason</label>
-                      <select id="report-reason" {...reportForm.register("reason")}>
+                      <select
+                        id="report-reason"
+                        aria-invalid={Boolean(reportForm.formState.errors.reason)}
+                        aria-describedby={
+                          reportForm.formState.errors.reason ? "report-reason-error" : undefined
+                        }
+                        {...reportForm.register("reason")}
+                      >
                         <option value="">Choose a reason</option>
                         <option value="incorrect">Incorrect or outdated information</option>
                         <option value="unsafe">Unsafe or inappropriate content</option>
@@ -341,7 +389,7 @@ function ItemDetailContent({ id }: { id: string }) {
                         <option value="other">Something else</option>
                       </select>
                       {reportForm.formState.errors.reason && (
-                        <span className="field-error">
+                        <span className="field-error" id="report-reason-error" role="alert">
                           {reportForm.formState.errors.reason.message}
                         </span>
                       )}
@@ -350,10 +398,14 @@ function ItemDetailContent({ id }: { id: string }) {
                         id="report-details"
                         rows={4}
                         maxLength={400}
+                        aria-invalid={Boolean(reportForm.formState.errors.details)}
+                        aria-describedby={
+                          reportForm.formState.errors.details ? "report-details-error" : undefined
+                        }
                         {...reportForm.register("details")}
                       />
                       {reportForm.formState.errors.details && (
-                        <span className="field-error">
+                        <span className="field-error" id="report-details-error" role="alert">
                           {reportForm.formState.errors.details.message}
                         </span>
                       )}
@@ -384,21 +436,216 @@ function ItemDetailContent({ id }: { id: string }) {
               <div className="claim-success" role="status">
                 <CheckCircle2 size={19} aria-hidden="true" />
                 <div>
-                  <strong>Note sent safely.</strong>
-                  <span>{item.reporter} can now get in touch with you.</span>
+                  <strong>Claim sent for review.</strong>
+                  <span>
+                    Your proof is private. Sign in with the same email address to follow its status.
+                  </span>
+                  <Link
+                    to="/sign-in"
+                    state={{ from: { pathname: `/claims/${mutation.data.claimId}` } }}
+                  >
+                    Sign in to follow your claim <ArrowRight size={14} />
+                  </Link>
                 </div>
               </div>
             ) : isAvailable ? (
               <>
-                <button
-                  className="button button-dark"
-                  type="button"
-                  onClick={() => setClaimOpen(!claimOpen)}
-                  aria-expanded={claimOpen}
+                <Dialog.Root
+                  open={claimOpen}
+                  onOpenChange={(open) => {
+                    setClaimOpen(open);
+                    if (open) {
+                      mutation.reset();
+                      setProofPhotoError("");
+                    }
+                  }}
                 >
-                  {item.status === "found" ? "This is mine" : "I found this"}{" "}
-                  <ArrowUpRight size={16} aria-hidden="true" />
-                </button>
+                  <Dialog.Trigger asChild>
+                    <button className="button button-dark" type="button">
+                      {item.status === "found" ? "This is mine" : "I found this"}{" "}
+                      <ArrowUpRight size={16} aria-hidden="true" />
+                    </button>
+                  </Dialog.Trigger>
+                  <Dialog.Portal>
+                    <Dialog.Overlay className="ui-dialog-overlay" />
+                    <Dialog.Content className="ui-dialog-content claim-dialog">
+                      <div className="ui-dialog-heading">
+                        <div>
+                          <Dialog.Title className="ui-dialog-title">
+                            {item.status === "found" ? "Claim this item" : "Tell the finder"}
+                          </Dialog.Title>
+                          <Dialog.Description className="ui-dialog-description">
+                            Specific details help the finder confirm the item is yours. Your answers
+                            are private.
+                          </Dialog.Description>
+                        </div>
+                        <Dialog.Close className="ui-icon-button" aria-label="Close claim dialog">
+                          <X size={17} />
+                        </Dialog.Close>
+                      </div>
+                      <form className="claim-form" onSubmit={handleSubmit(sendClaim)} noValidate>
+                        <div className="form-field">
+                          <label htmlFor="claim-name">Your name</label>
+                          <input
+                            id="claim-name"
+                            autoComplete="name"
+                            aria-invalid={Boolean(errors.name)}
+                            aria-describedby={errors.name ? "claim-name-error" : undefined}
+                            {...register("name")}
+                          />
+                          {errors.name && (
+                            <span className="field-error" id="claim-name-error" role="alert">
+                              {errors.name.message}
+                            </span>
+                          )}
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="claim-email">Email address</label>
+                          <input
+                            id="claim-email"
+                            type="email"
+                            autoComplete="email"
+                            aria-invalid={Boolean(errors.email)}
+                            aria-describedby={errors.email ? "claim-email-error" : undefined}
+                            {...register("email")}
+                          />
+                          {errors.email && (
+                            <span className="field-error" id="claim-email-error" role="alert">
+                              {errors.email.message}
+                            </span>
+                          )}
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="claim-marks">
+                            Describe unique marks or details only the owner would know
+                          </label>
+                          <textarea
+                            id="claim-marks"
+                            rows={3}
+                            maxLength={500}
+                            placeholder="A scratch, sticker, engraving, contents, or other identifying detail…"
+                            aria-invalid={Boolean(errors.uniqueMarks)}
+                            aria-describedby={errors.uniqueMarks ? "claim-marks-error" : undefined}
+                            {...register("uniqueMarks")}
+                          />
+                          {errors.uniqueMarks && (
+                            <span className="field-error" id="claim-marks-error" role="alert">
+                              {errors.uniqueMarks.message}
+                            </span>
+                          )}
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="claim-lost-date">When did you lose it?</label>
+                          <input
+                            id="claim-lost-date"
+                            type="date"
+                            max={new Date().toISOString().slice(0, 10)}
+                            aria-invalid={Boolean(errors.lostDate)}
+                            aria-describedby={errors.lostDate ? "claim-lost-date-error" : undefined}
+                            {...register("lostDate")}
+                          />
+                          {errors.lostDate && (
+                            <span className="field-error" id="claim-lost-date-error" role="alert">
+                              {errors.lostDate.message}
+                            </span>
+                          )}
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="claim-lost-location">Where did you lose it?</label>
+                          <input
+                            id="claim-lost-location"
+                            maxLength={120}
+                            placeholder="A nearby place or landmark"
+                            aria-invalid={Boolean(errors.lostLocation)}
+                            aria-describedby={
+                              errors.lostLocation ? "claim-lost-location-error" : undefined
+                            }
+                            {...register("lostLocation")}
+                          />
+                          {errors.lostLocation && (
+                            <span
+                              className="field-error"
+                              id="claim-lost-location-error"
+                              role="alert"
+                            >
+                              {errors.lostLocation.message}
+                            </span>
+                          )}
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="claim-proof-photo">Photo proof (optional)</label>
+                          <input
+                            id="claim-proof-photo"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(event) => attachProofPhoto(event.currentTarget.files?.[0])}
+                          />
+                          {watch("photoUrl") && (
+                            <div className="claim-photo-preview">
+                              <img
+                                src={watch("photoUrl")}
+                                alt="Selected proof"
+                                width={640}
+                                height={480}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setValue("photoUrl", "");
+                                  const input = document.getElementById("claim-proof-photo");
+                                  if (input instanceof HTMLInputElement) input.value = "";
+                                }}
+                              >
+                                <Trash2 size={14} /> Remove photo
+                              </button>
+                            </div>
+                          )}
+                          {proofPhotoError && (
+                            <span className="field-error" role="alert">
+                              {proofPhotoError}
+                            </span>
+                          )}
+                          {!proofPhotoError && (
+                            <span className="form-field-hint">
+                              JPG, PNG, or WebP under 3 MB. Avoid personal details in the photo.
+                            </span>
+                          )}
+                        </div>
+                        <div className="claim-consent">
+                          <input
+                            id="claim-consent"
+                            type="checkbox"
+                            aria-invalid={Boolean(errors.consent)}
+                            aria-describedby={errors.consent ? "claim-consent-error" : undefined}
+                            {...register("consent")}
+                          />
+                          <label htmlFor="claim-consent">
+                            I confirm this is my item and consent to sharing these details privately
+                            with the finder.
+                          </label>
+                        </div>
+                        {errors.consent && (
+                          <span className="field-error" id="claim-consent-error" role="alert">
+                            {errors.consent.message}
+                          </span>
+                        )}
+                        {mutation.isError && (
+                          <p className="form-error" role="alert">
+                            {mutation.error.message}
+                          </p>
+                        )}
+                        <button
+                          className="button button-dark form-submit"
+                          type="submit"
+                          disabled={mutation.isPending || Boolean(proofPhotoError)}
+                        >
+                          {mutation.isPending ? "Sending…" : "Submit claim for review"}{" "}
+                          <ArrowUpRight size={15} aria-hidden="true" />
+                        </button>
+                      </form>
+                    </Dialog.Content>
+                  </Dialog.Portal>
+                </Dialog.Root>
                 <p>
                   <ShieldCheck size={14} aria-hidden="true" /> Your contact details are only shared
                   with the person who posted.
@@ -410,59 +657,6 @@ function ItemDetailContent({ id }: { id: string }) {
               </p>
             )}
           </div>
-          {claimOpen && isAvailable && !mutation.isSuccess && (
-            <form
-              className="claim-form"
-              onSubmit={handleSubmit((values) => sendClaim(values))}
-              noValidate
-            >
-              <h2>Send a private note</h2>
-              <p>
-                Share one detail that helps confirm the connection. Please don’t include sensitive
-                information.
-              </p>
-              <div className="form-field">
-                <label htmlFor="claim-name">Your name</label>
-                <input
-                  id="claim-name"
-                  autoComplete="name"
-                  aria-invalid={Boolean(errors.name)}
-                  {...register("name")}
-                />
-                {errors.name && <span className="field-error">{errors.name.message}</span>}
-              </div>
-              <div className="form-field">
-                <label htmlFor="claim-email">Email address</label>
-                <input
-                  id="claim-email"
-                  type="email"
-                  autoComplete="email"
-                  aria-invalid={Boolean(errors.email)}
-                  {...register("email")}
-                />
-                {errors.email && <span className="field-error">{errors.email.message}</span>}
-              </div>
-              <div className="form-field">
-                <label htmlFor="claim-details">How do you recognize it?</label>
-                <textarea
-                  id="claim-details"
-                  rows={3}
-                  aria-invalid={Boolean(errors.details)}
-                  {...register("details")}
-                />
-                {errors.details && <span className="field-error">{errors.details.message}</span>}
-              </div>
-              {mutation.isError && (
-                <p className="form-error" role="alert">
-                  {mutation.error.message}
-                </p>
-              )}
-              <button className="button button-dark form-submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Sending…" : "Send private note"}{" "}
-                <ArrowUpRight size={15} aria-hidden="true" />
-              </button>
-            </form>
-          )}
         </div>
       </div>
 

@@ -29,6 +29,8 @@ export function ItemCard({ item, backTo }: { item: Item; backTo?: string }) {
             className="item-image"
             src={item.image}
             alt=""
+            width={640}
+            height={480}
             loading="lazy"
             onError={() => setImageFailed(true)}
           />

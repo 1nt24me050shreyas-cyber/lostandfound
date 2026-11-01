@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <span className="ui-field-error" id={errorId}>
+          <span className="ui-field-error" id={errorId} role="alert">
             {error}
           </span>
         )}
